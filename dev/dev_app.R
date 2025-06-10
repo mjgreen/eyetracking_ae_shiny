@@ -11,6 +11,7 @@ options(shiny.maxRequestSize = 30*1024^2)
 dummynames=LETTERS
 
 
+
 ui <- page_sidebar(
   useShinyjs(),
   title="Eye tracking app",
@@ -46,12 +47,13 @@ ui <- page_sidebar(
 
 server <- function(input, output, session){
   
+  # Set the data 
   data_tilelist <- reactive({
     if(is.data.frame(g$aois)){
       g$aois
     }
   })
-
+  # Do the download
   output$download_tilelist <- downloadHandler(
     filename = function() {
       paste0("AOIS", ".tsv")
@@ -60,13 +62,15 @@ server <- function(input, output, session){
       vroom::vroom_write(data_tilelist(), file)
     }
   )
-
+  
+  
+  # Set the data for the download_tileassignment downloadHandler
   data_tileassignment <- reactive({
     if(!is.null(g$fixrep$tile_id)){
       g$fixrep  
     }
   })
-  
+  # Actually download the tileassignment
   output$download_tileassignment <- downloadHandler(
     filename = function() {
       paste0("fixrep_with_tile", ".tsv")
@@ -107,20 +111,29 @@ server <- function(input, output, session){
       g$fixrep = myfixupload()
     }
   })
-
+  
   observeEvent(input$do_which_tile, {
     if(length(g$clicked_x > 1)){
-      for (fixation in 1:nrow(g$fixrep)){
-        g$fixrep[fixation, "tile"] = 
-          which.tile(x=as.numeric(g$fixrep[fixation, "CURRENT_FIX_X"]),
-                     y=as.numeric(g$fixrep[fixation, "CURRENT_FIX_Y"]),
-                     tl=g$tile_list)
-        g$fixrep[fixation, "tile_id"] = 
-          names(g$tile_list)[as.numeric(g$fixrep[fixation, "tile"])]
+      fixrep_for_this_image = g$fixrep %>% filter(face_jpeg==input$upload$name)
+      for(i in 1:nrow(fixrep_for_this_image)){
+        x=fixrep_for_this_image[i, 'CURRENT_FIX_X'] %>% pull()
+        y=fixrep_for_this_image[i, 'CURRENT_FIX_Y'] %>% pull()
+        tl=g$tile_list
+        fixrep_for_this_image[i, 'tile']=which.tile(x,y,tl)
+        #fixrep_for_this_image[i, 'tile_id']=which.tile(x,y,tl)
       }
+      saveRDS(fixrep_for_this_image, 'fixrep_for_this_image.rds')
+      # for (fixation in 1:nrow(g$fixrep)){
+      #   g$fixrep[fixation, "tile"] = 
+      #     which.tile(x=as.numeric(g$fixrep[fixation, "CURRENT_FIX_X_adj"]),
+      #                y=as.numeric(g$fixrep[fixation, "CURRENT_FIX_Y_adj"]),
+      #                tl=g$tile_list)
+      #   g$fixrep[fixation, "tile_id"] = 
+      #     names(g$tile_list)[as.numeric(g$fixrep[fixation, "tile"])]
+      # }
     }
   })
-
+  
   # Record clicks on the image and update the prompt
   
   observeEvent(input$image_click, {
@@ -168,7 +181,7 @@ server <- function(input, output, session){
     updateTextInput(session, "landmark_name", value = "name")
     reset("upload")
   })
-
+  
   # Handle the compute button to analyze fixations
   observeEvent(input$compute, {
     
@@ -206,8 +219,8 @@ server <- function(input, output, session){
     if (!is.null(fixfile)){
       read_csv(fixfile$datapath, show_col_types = F) %>% 
         mutate(
-          CURRENT_FIX_X = ((CURRENT_FIX_X/1920) * 600), 
-          CURRENT_FIX_Y = ((CURRENT_FIX_Y/1080) * 800),
+          CURRENT_FIX_X_adj = ((CURRENT_FIX_X/1920) * 600), 
+          CURRENT_FIX_Y_adj = ((CURRENT_FIX_Y/1080) * 800),
           tile = as.numeric(NA)
         )
     }
@@ -226,7 +239,7 @@ server <- function(input, output, session){
       }
       if(length(g$clicked_x) > 1){
         vor = deldir(x=aois$x, y=aois$y, id = as.vector(g$clicked_name),
-                   rw=c(xleft=0, xright=g$img_x_width, ybottom=0, ytop=g$img_y_height))
+                     rw=c(xleft=0, xright=g$img_x_width, ybottom=0, ytop=g$img_y_height))
         g$vor = vor
         g$tile_list = tile.list(vor)
       }
@@ -247,7 +260,7 @@ server <- function(input, output, session){
         annotation_raster(raster=myjpeg(), xmin=0, xmax=600, ymin=(-1*800), ymax=0)
     }
   }, height=800, width=600)
-
+  
   output[['image2']] <- renderPlot({
     if(!is.null(input[['upload']])){
       plot(0, 0, type = 'n', xlim = c(0, g$img_x_width), ylim = c(g$img_y_height, 0), xlab = '', ylab = '', xaxt = 'n', yaxt = 'n')
@@ -267,13 +280,13 @@ server <- function(input, output, session){
              axes=TRUE)
       }
       if("tile_id" %in% names(g$fixrep) && input$toggle_fixations==TRUE){
-        points(g$fixrep$CURRENT_FIX_X, y=g$fixrep$CURRENT_FIX_Y, cex=4, col="red", pch=21, bg="blue")
+        points(g$fixrep$CURRENT_FIX_X_adj, y=g$fixrep$CURRENT_FIX_Y_adj, cex=4, col="red", pch=21, bg="blue")
       }
     }
   }, height=800, width=600)
   
 } # close server logic
-  
+
 shinyApp(ui, server)
 
 

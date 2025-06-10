@@ -9,7 +9,8 @@ f = expand.grid(
   arrange(subject_id, trial_id) %>% 
   as_tibble() %>% 
   mutate(
-    x = sample(seq(50, 550), nrow(.)),
-    y = sample(seq(50, 750), nrow(.))
+    fix_x = sample(seq(50, 550), nrow(.)),
+    fix_y = sample(seq(50, 750), nrow(.)),
+    jpg = ifelse(trial_id == 1, "C1_041.jpg", "C1_052.jpg")
   )
 write_csv(f, "fixation_report.csv")
