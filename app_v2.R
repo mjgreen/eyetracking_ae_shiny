@@ -11,7 +11,8 @@ ui <- page_fillable(
   layout_columns(
     card(card_header("Inputs"),
          fileInput("upload_face", "Upload face", accept = "image/jpeg"),
-         fileInput("upload_fixrep", "Upload fixation report", accept = "text/csv")
+         fileInput("upload_fixrep", "Upload fixation report", accept = "text/csv"),
+         actionButton("save_aois", "Save AOIs and exit")
          ),
     card(card_header("Face for edit"),
          plotOutput("face_for_edit", click = "face_for_edit_click", dblclick = "face_for_edit_dblclick")
@@ -49,7 +50,13 @@ server <- function(input, output) {
     myglobals$click_x = c(myglobals$click_x, click_x)
     myglobals$click_y = c(myglobals$click_y, click_y)
     myglobals$aois = myglobals$aois %>% bind_rows(aois) %>% na.omit()
-    #browser()
+  })
+  
+  observeEvent(input$save_aois, {
+    if(nrow(myglobals$aois)>=2){
+      saveRDS(myglobals$aois, "aois.rds")
+      stopApp()
+    }
   })
 
   # Prepare the plot for the left-hand-side
@@ -103,6 +110,8 @@ server <- function(input, output) {
               ybottom=0, 
               ytop=800)
             )
+        tiles = tile.list(vor)
+        myglobals$tiles = tiles
         plot(
           vor,
           add=TRUE,
