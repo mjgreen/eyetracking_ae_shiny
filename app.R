@@ -140,6 +140,7 @@ server <- function(input, output, session) {
       rasterImage(myjpeg(), xleft=0, ybottom=800, xright=600, ytop=0) 
       if(input$toggle_fixations==TRUE){
         points(g$fixrep_this_face$FIX_X, g$fixrep_this_face$FIX_Y, pch=21, bg="yellow", cex=5)
+        text(g$fixrep_this_face$FIX_X, g$fixrep_this_face$FIX_Y)
         text(g$fixrep_this_face$FIX_X, g$fixrep_this_face$FIX_Y, 
              labels=paste0("(",g$fixrep_this_face$FIX_X, ", ", g$fixrep_this_face$FIX_Y, ")"),
              pos=1, offset=2, col="yellow", cex=2)
