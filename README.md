@@ -18,3 +18,5 @@ scp -r /home/matt/gits/eyetracking_uruguay mgreen@uruguay.bournemouth.ac.uk:/srv
 
 https://uruguay.bournemouth.ac.uk/shiny/sample-apps/eyetracking_uruguay/
 
+## To rebuild from the venv lockfile, use `renv::rebuild()` on the server after having logged in using
+>ssh -p 22 mgreen@uruguay.bournemouth.ac.uk
