@@ -1,9 +1,13 @@
-library(shiny)
-library(shinyjs) 
-library(bslib) 
-library(deldir)
-library(jpeg)
-library(tidyverse)
+library("shiny")
+library("shinyjs") 
+library("bslib") 
+library("deldir")
+library("jpeg")
+library("tibble")
+library("readr")
+library("pipeR")
+library("dplyr")
+#library(tidyverse)
 
 ui <- page_fillable(
   useShinyjs(),
