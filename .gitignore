@@ -3,4 +3,5 @@
 .RData
 .Ruserdata
 
-aois.rds
+renv/library
+
