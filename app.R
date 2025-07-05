@@ -105,7 +105,7 @@ server <- function(input, output, session) {
   # Respond to upload fixation report button
   observeEvent(input$upload_fixrep, {
     shinyjs::logjs("just before doing read_csv")
-    fix_rep_in = read_csv(input$upload_fixrep$datapath, show_col_types = F) 
+    fix_rep_in = read.csv(input$upload_fixrep$datapath, show_col_types = F) 
     g$fixrep_raw = fix_rep_in
     output$variable_selectors <- renderUI({
       if (!is.null(fix_rep_in)) {
