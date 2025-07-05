@@ -204,7 +204,7 @@ server <- function(input, output, session) {
   # Respond to write csv and exit
   output$download_annotated <- downloadHandler(
     filename = function() {
-      paste("data-", "annotated_fixation_report-", Sys.Date(), ".csv", sep="")
+      paste("data-", "fixrep_with_annotation-", Sys.time() %>% gsub(pattern=" ", replacement="_") %>% gsub(pattern=".", replacement="_", fixed=TRUE), ".csv", sep="")
     },
     content = function(file) {
       write.csv(g$fixrep_with_annotation, file)
