@@ -54,7 +54,9 @@ ui <- page_fillable(
                   "would be duplicated across rows in the event that the user",
                   "did in fact use 'annotate this face' appropriately. ",
                   "However dplyr::distinct() might be good for this as it removes duplicate rows - ",
-                  "Need to check whether rows are unique enough for this - I think if fiaxtion id is used, then using distinct should work."))
+                  "Need to check whether rows are unique enough for this - I think if fiaxtion id is used, then using distinct should work.")),
+                
+                p(paste0("double-click doesn't do anything"))
       ),
       nav_panel("Debug",
                 actionButton("debug", "Debug (for dev use only)")
@@ -207,7 +209,7 @@ server <- function(input, output, session) {
       paste("data-", "fixrep_with_annotation-", Sys.time() %>% gsub(pattern=" ", replacement="_") %>% gsub(pattern=".", replacement="_", fixed=TRUE), ".csv", sep="")
     },
     content = function(file) {
-      write.csv(g$fixrep_with_annotation, file)
+      write.csv(g$fixrep_with_annotation, filename)
     }
   )
 
