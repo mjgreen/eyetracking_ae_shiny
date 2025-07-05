@@ -2,6 +2,8 @@ library(shiny)
 library(shinyjs) 
 library(bslib)
 library(DT)
+library(deldir)
+library(jpeg)
 
 ui <- page_fillable(
   useShinyjs(),
