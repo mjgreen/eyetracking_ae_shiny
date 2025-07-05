@@ -210,7 +210,7 @@ server <- function(input, output, session) {
       paste("data-", "fixrep_with_annotation-", Sys.time() %>% gsub(pattern=" ", replacement="_") %>% gsub(pattern=".", replacement="_", fixed=TRUE), ".csv", sep="")
     },
     content = function(file) {
-      write.csv(g$fixrep_with_annotation, filename)
+      write.csv(g$fixrep_with_annotation, file)
     }
   )
 
