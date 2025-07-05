@@ -4,6 +4,8 @@ library(bslib)
 library(DT)
 library(deldir)
 library(jpeg)
+library(dplyr)
+library(renv)
 
 ui <- page_fillable(
   useShinyjs(),
