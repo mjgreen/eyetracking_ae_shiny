@@ -16,14 +16,19 @@ ui <- page_fillable(
                 p(paste0(
                   "Use the Fixation Report tab to upload your fixation report ",
                   "and answer questions about it. If you don't have one ",
-                  "to hand you can get one: ",
+                  "to hand you can get one here: "),
                   tags$a(
-                    "here",
-                    target = "_blank",
+                    "download sample fixation report as csv",
                     href = "https://mjgreen.github.io/eyetracking_ae_shiny/fixation_report.csv"
-                  ))),
-                  
-                p("Use the Faces tab to upload and annotate faces"),
+                  )),
+                p(paste0("Use the Faces tab to upload and annotate faces. ",
+                "You can download suitable test faces here: "),
+                  tags$a(
+                    "download sample faces as zip",
+                    download = "sample_faces.zip",
+                    #href="#",
+                    href = "https://mjgreen.github.io/eyetracking_ae_shiny/sample_faces.zip"
+                  )),
                 p("Use the Debug tab to inspect the internal state of the program"),
                 p("Use the Save tab to save the processed Fixation report")
       ),
