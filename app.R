@@ -191,7 +191,14 @@ server <- function(input, output, session) {
   
   # Respond to write rds
   observeEvent(input[['write_annotated']], {
-    saveRDS(g$fixrep_with_annotation, "fixrep_with_annotation.rds")
+    saveRDS(g$fixrep_with_annotation, 
+            file.path(
+              "outputs", 
+              paste0("fixrep_with_annotation-",
+                     Sys.time() %>% gsub(pattern=" ", replacement="_") %>% gsub(pattern=".", replacement="_", fixed=TRUE), 
+                     ".rds")
+            )
+    )
   })
 
   # Respond to write csv and exit
