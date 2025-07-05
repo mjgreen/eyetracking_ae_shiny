@@ -96,6 +96,7 @@ server <- function(input, output, session) {
     reactiveValuesToList(g)
   })
   
+  ### FUNCTIONS ###
 
   # Read face jpeg function
   myjpeg = reactive({
@@ -104,6 +105,20 @@ server <- function(input, output, session) {
       readJPEG(jpegfile$datapath, native=TRUE) 
     }
   })
+  
+  # Calculate tesselation function
+  do_deldir = reactive({
+    if(nrow(g$aois) >= 2){
+      deldir(
+        x = g$aois$x, 
+        y = g$aois$y, 
+        id = g$aois$aoi_name,
+        rw = c(xleft = 0, xright=600, ybottom=0, ytop=800)
+      )
+    }
+  })
+  
+  ### END FUNCTIONS ###
   
   # Respond to upload fixation report button
   observeEvent(input$upload_fixrep, {
@@ -163,6 +178,37 @@ server <- function(input, output, session) {
                       aoi_name=aoi_name)
     g$aois = g$aois %>% bind_rows(this_aoi)
   })
+  
+  # Respond to double-click in face - Remove aoi on double click
+  observeEvent(input$face_for_edit_dblclick, {
+    click_x <- input$face_for_edit_dblclick$x
+    click_y <- input$face_for_edit_dblclick$y
+    g$aois$dbl_x = click_x
+    g$aois$dbl_y = click_y
+    if(nrow(g$aois) > 0){
+      # Go through each aoi and say how far the aoi centre is from the double-click using Pythagoras' Theorem
+      for(i in 1:nrow(g$aois)){
+        # with origin at top-left
+        lower_x = min(g$aois[i, "x"], g$aois[i, "dbl_x"])
+        upper_x = max(g$aois[i, "x"], g$aois[i, "dbl_x"])
+        lower_y = min(g$aois[i, "y"], g$aois[i, "dbl_y"])
+        upper_y = max(g$aois[i, "y"], g$aois[i, "dbl_y"])
+        a2 = (upper_x - lower_x)^2
+        b2 = (upper_y - lower_y)^2
+        c2 = a2+b2
+        euclidian_distance = sqrt(c2)
+        g$aois[i, "dist"] = euclidian_distance
+      }
+      # Work out the aoi centre that is closest to the double-click
+      row_to_remove_by_rownum = which.min(g$aois$dist)
+      # Remove (using slice() with negative indexing) the aoi whose centre is closest to the double-click
+      g$aois = g$aois %>% slice(-row_to_remove_by_rownum)
+      if(nrow(g$aois) >= 2){
+        g$vor = do_deldir()
+      }
+    }
+  })
+  
   
   # Respond to annotate
   observeEvent(input[['annotate']], {
