@@ -20,3 +20,16 @@ https://uruguay.bournemouth.ac.uk/shiny/sample-apps/eyetracking_uruguay/
 
 ## To rebuild from the venv lockfile, use `renv::rebuild()` on the server after having logged in using
 >ssh -p 22 mgreen@uruguay.bournemouth.ac.uk
+
+## Sign in to RStudio on the server:
+https://uruguay.bournemouth.ac.uk/server/auth-sign-in?appUri=%2F
+
+
+## Sync -- Method using git
+ssh to server
+ssh -p 22 mgreen@uruguay.bournemouth.ac.uk
+cd ShinyApps
+git clone --depth=1 --branch=main git@github.com:mjgreen/eyetracking_ae_shiny.git
+cd eyetracking_ae_shiny
+R CMD renv::rebuild()
+https://uruguay.bournemouth.ac.uk/shiny/users/mgreen/eyetracking_ae_shiny/
