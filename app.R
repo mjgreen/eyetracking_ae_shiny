@@ -104,6 +104,7 @@ server <- function(input, output, session) {
   
   # Respond to upload fixation report button
   observeEvent(input$upload_fixrep, {
+    browser()
     fix_rep_in = read_csv(input$upload_fixrep$datapath, show_col_types = F) 
     g$fixrep_raw = fix_rep_in
     output$variable_selectors <- renderUI({
