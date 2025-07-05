@@ -56,7 +56,7 @@ ui <- page_fillable(
                   "However dplyr::distinct() might be good for this as it removes duplicate rows - ",
                   "Need to check whether rows are unique enough for this - I think if fiaxtion id is used, then using distinct should work.")),
                 
-                p(paste0("double-click doesn't do anything")),
+                p(paste0("FIXED: double-click doesn't do anything")),
                 p(paste0("selecting origin doesn't do anything"))
       ),
       nav_panel("Debug",
