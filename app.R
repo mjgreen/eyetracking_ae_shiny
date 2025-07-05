@@ -15,8 +15,7 @@ ui <- page_fillable(
       nav_panel("Instructions",
                 p(paste0(
                   "Use the Fixation Report tab to upload your fixation report ",
-                  "and answer questions about it. If you don't have one ",
-                  "to hand you can get one here: "),
+                  "and answer questions about it. You can download a suitable test fixation report here: "),
                   tags$a(
                     "download sample fixation report as csv",
                     href = "https://mjgreen.github.io/eyetracking_ae_shiny/fixation_report.csv"

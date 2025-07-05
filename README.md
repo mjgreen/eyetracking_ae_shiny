@@ -33,3 +33,7 @@ git clone --depth=1 --branch=main git@github.com:mjgreen/eyetracking_ae_shiny.gi
 cd eyetracking_ae_shiny
 R CMD renv::rebuild()
 https://uruguay.bournemouth.ac.uk/shiny/users/mgreen/eyetracking_ae_shiny/
+
+
+
+https://github.com/mjgreen/eyetracking_ae_shiny/blob/6c1e3b79a7235fbcbb29389126012bc2bbd1e931/inputs/fixation_report.csv
