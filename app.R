@@ -13,7 +13,16 @@ ui <- page_fillable(
     col_widths = c(4, 8),
     navset_card_pill(
       nav_panel("Instructions",
-                p("Use the Fixation Report tab to upload your fixation report and answer questions about it"),
+                p(paste0(
+                  "Use the Fixation Report tab to upload your fixation report ",
+                  "and answer questions about it. If you don't have one ",
+                  "to hand you can get one: ",
+                  tags$a(
+                    "here",
+                    target = "_blank",
+                    href = "https://mjgreen.github.io/eyetracking_ae_shiny/fixation_report.csv"
+                  ))),
+                  
                 p("Use the Faces tab to upload and annotate faces"),
                 p("Use the Debug tab to inspect the internal state of the program"),
                 p("Use the Save tab to save the processed Fixation report")
