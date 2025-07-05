@@ -13,6 +13,8 @@ ui <- page_fillable(
     col_widths = c(4, 8),
     navset_card_pill(
       nav_panel("Instructions",
+                p("This is v 0.1 with tabbed interface"),
+                p("I live at https://uruguay.bournemouth.ac.uk/shiny/users/mgreen/eyetracking_ae_shiny/"),
                 p(paste0(
                   "Use the Fixation Report tab to upload your fixation report ",
                   "and answer questions about it. You can download a suitable test fixation report here: "),
