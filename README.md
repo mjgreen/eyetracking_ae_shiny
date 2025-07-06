@@ -1,7 +1,12 @@
-# eyetracking_ae_shiny
-Alex's Shiny App
+# Alex's Shiny App for Eye-tracking data analysis
 
-# How to run
+## How to sync to the server
+
+* First, login to the server
+>ssh -p 22 mgreen@uruguay.bournemouth.ac.uk
+  
+
+## How to run
 ```
 shiny::runGitHub("eyetracking_ae_shiny", "mjgreen")
 ```
