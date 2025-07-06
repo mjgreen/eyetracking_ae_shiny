@@ -3,7 +3,7 @@
 ## How to sync to the server
 
 * First, login to the server
->ssh -p 22 mgreen@uruguay.bournemouth.ac.uk
+  * >ssh -p 22 mgreen@uruguay.bournemouth.ac.uk
   
 
 ## How to run
