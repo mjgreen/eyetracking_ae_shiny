@@ -20,7 +20,7 @@
 
 ## How to run as a user, if the user has RStudio and all required packages already
 
-This method would suit an external collaborator who can't vpn into BU, until IT make the uruguay service outward-fscing
+This method would suit an external collaborator who can't vpn into BU, until IT make the uruguay service outward-facing
 ```
 shiny::runGitHub("eyetracking_ae_shiny", "mjgreen")
 ```
