@@ -27,10 +27,10 @@ shiny::runGitHub("eyetracking_ae_shiny", "mjgreen")
 
 ## Gow to sync to the shared space on the server (method above uses my user-space)
 * uploads to server's own space (no sudo so for packages that need to be built from source that have dependencies that aren't available on the server, we need to use renv to supply those packages within the app using renv)
-* scp -r /home/matt/gits/eyetracking_uruguay mgreen@uruguay.bournemouth.ac.uk:/srv/shiny-server/sample-apps/
-* cd /srv/shiny-server/sample-apps/eyetracking_ae_shiny
-* R
-* renv::restore() or renv::rebuild()
+* `scp -r /home/matt/gits/eyetracking_uruguay mgreen@uruguay.bournemouth.ac.uk:/srv/shiny-server/sample-apps/`
+* `cd /srv/shiny-server/sample-apps/eyetracking_ae_shiny`
+* `R`
+* `renv::restore()` or `renv::rebuild()`
 * page is available at: https://uruguay.bournemouth.ac.uk/shiny/sample-apps/eyetracking_uruguay/
 
 ## How to sign in to RStudio on the server:
