@@ -7,6 +7,8 @@ library(jpeg)
 library(dplyr)
 library(renv)
 
+##### UI #####
+
 ui <- page_fillable(
   useShinyjs(),
   layout_columns(
@@ -26,8 +28,7 @@ ui <- page_fillable(
                 hr(),
                 h3("User Instructions"),
                 tags$div(
-                  HTML(
-                    "
+                  HTML("
                     <ol> 
                     <li> Use the <strong>Fixation Report</strong> tab to upload your fixation report. Then dropdown boxes will appear and you should use those to say which columns correspond to which eye-tracking variables. You can download a suitable test fixation report <a href = 'https://mjgreen.github.io/eyetracking_ae_shiny/fixation_report.csv' > here </a> </li>
                     <li> Use the <strong>Faces upload</strong> tab to upload and annotate faces. Instructions for annotation are given in that tab. You can download two suitable faces as a zip file <a href = 'https://mjgreen.github.io/eyetracking_ae_shiny/sample_faces.zip' > here </a> </li>
@@ -45,28 +46,7 @@ ui <- page_fillable(
       nav_panel("Faces", 
                 fileInput("upload_face", "Upload face", accept = "image/jpeg"),
                 input_switch("toggle_fixations", "Toggle fixation visibility on/off"),
-                p(paste0(
-                  "You can supply a name (like 'nose') for an AOI by writing it in the box below, ",
-                  "or let the app name the AOIs for you by not typing anything.")),
-                p(paste0("Then use the mouse to single-click on the left-hand-side face to indicate the centroid ",
-                  "of an AOI (double-click removes the nearest centroid).")),
-                p(paste0("When there are 2 or more AOIs, the right-hand-side face ",
-                  "will create and display AOI areas using Voronoi tesselation.")),
-                textInput("aoi_name", "Type name for this AOI, then click in AOI", "a"),
-                p(
-                  "You ",
-                  strong("MUST"),
-                  "click ",
-                  em('Annotate Current Face'),
-                  "before doing ",
-                  em('Start next face'),
-                  "or any ",
-                  em('Save and Exit'),
-                  "options. As soon as you have clicked 'Annotate Current Face', an annotated fixation report will be available in the tab ", 
-                  strong("Annotated fixation report"),
-                  "on the right-hand-side next to",
-                  strong("Faces upload")
-                ),
+                p(paste0( "You can supply a name (like 'nose') for an AOI by writing it in the box below, ", "or let the app name the AOIs for you by not typing anything.")), p(paste0("Then use the mouse to single-click on the left-hand-side face to indicate the centroid ", "of an AOI (double-click removes the nearest centroid).")), p(paste0("When there are 2 or more AOIs, the right-hand-side face ", "will create and display AOI areas using Voronoi tesselation.")), textInput("aoi_name", "Type name for this AOI, then click in AOI", "a"), p( "You ", strong("MUST"), "click ", em('Annotate Current Face'), "before doing ", em('Start next face'), "or any ", em('Save and Exit'), "options. As soon as you have clicked 'Annotate Current Face', an annotated fixation report will be available in the tab ", strong("Annotated fixation report"), "on the right-hand-side next to", strong("Faces upload") ),
                 actionButton("annotate", "Annotate current face"),
                 actionButton("next_face", "Start next face")
       ), 
@@ -109,7 +89,7 @@ ui <- page_fillable(
 
 
 
-
+##### SREVER #####
 
 server <- function(input, output, session) {
   
@@ -154,6 +134,9 @@ server <- function(input, output, session) {
   
   # Respond to upload fixation report button
   observeEvent(input$upload_fixrep, {
+    if(tools::file.ext(input$upload_fixrep$datapath)=="xls"){
+      fix_rep_in = read_delim(input$upload_fixrep$datapath, locale = readr::locale(encoding = "UTF-16LE"))
+    }
     shinyjs::logjs("just before doing read_csv")
     fix_rep_in = read.csv(input$upload_fixrep$datapath) 
     shinyjs::logjs("just after doing read_csv")
