@@ -6,8 +6,9 @@ library(deldir)
 library(jpeg)
 library(dplyr)
 library(renv)
-library(readxl)
 library(readr)
+
+##### UI #####
 
 ui <- page_fillable(
   useShinyjs(),
@@ -28,8 +29,7 @@ ui <- page_fillable(
                 hr(),
                 h3("User Instructions"),
                 tags$div(
-                  HTML(
-                    "
+                  HTML("
                     <ol> 
                     <li> Use the <strong>Fixation Report</strong> tab to upload your fixation report. Then dropdown boxes will appear and you should use those to say which columns correspond to which eye-tracking variables. You can download a suitable test fixation report <a href = 'https://mjgreen.github.io/eyetracking_ae_shiny/fixation_report.csv' > here </a> </li>
                     <li> Use the <strong>Faces upload</strong> tab to upload and annotate faces. Instructions for annotation are given in that tab. You can download two suitable faces as a zip file <a href = 'https://mjgreen.github.io/eyetracking_ae_shiny/sample_faces.zip' > here </a> </li>
@@ -40,29 +40,27 @@ ui <- page_fillable(
                 hr()
       ),
       nav_panel("Fixation Report", 
-                fileInput("upload_fixrep", "Upload fixation report", accept = "xls"),
+                fileInput("upload_fixrep", "Upload fixation report", accept = c(".csv", ".xls", ".xlsx")),
                 uiOutput("variable_selectors")
                 
       ), 
-      nav_panel("Faces", 
+      nav_panel("Faces Upload", 
                 fileInput("upload_face", "Upload face", accept = "image/jpeg"),
                 input_switch("toggle_fixations", "Toggle fixation visibility on/off"),
-                p(paste0("You can supply a name (like 'nose') for an AOI by writing it in the box below, ", "or let the app name the AOIs for you by not typing anything.")),
-                p(paste0("Then use the mouse to single-click on the left-hand-side face to indicate the centroid ", "of an AOI (double-click removes the nearest centroid).")), 
-                p(paste0("When there are 2 or more AOIs, the right-hand-side face ", "will create and display AOI areas using Voronoi tesselation.")),
-                textInput("aoi_name", "Type name for this AOI, then click in AOI", "a"), p("You ", strong("MUST"), "click ", em('Annotate Current Face'), "before doing ", em('Start next face'), "or any ", em('Save and Exit'), "options. As soon as you have clicked 'Annotate Current Face', an annotated fixation report will be available in the tab ", strong("Annotated fixation report"), "on the right-hand-side next to", strong("Faces upload")),
-                actionButton("annotate_current_face", "Annotate current face"),
+                p(paste0( "You can supply a name (like 'nose') for an AOI by writing it in the box below, ", "or let the app name the AOIs for you by not typing anything.")), p(paste0("Then use the mouse to single-click on the left-hand-side face to indicate the centroid ", "of an AOI (double-click removes the nearest centroid).")), p(paste0("When there are 2 or more AOIs, the right-hand-side face ", "will create and display AOI areas using Voronoi tesselation.")), textInput("aoi_name", "Type name for this AOI, then click in AOI", "a"), p( "You ", strong("MUST"), "click ", em('Annotate Current Face'), "before doing ", em('Start next face'), "or any ", em('Save and Exit'), "options. As soon as you have clicked 'Annotate Current Face', an annotated fixation report will be available in the tab ", strong("Annotated fixation report"), "on the right-hand-side next to", strong("Faces upload") ),
+                actionButton("annotate", "Annotate current face"),
                 actionButton("next_face", "Start next face")
       ), 
-      nav_panel("Save and exit",
+      nav_panel("Save and exit options",
                 downloadButton("download_annotated", "Download annotated fixation report as .csv"),
-                actionButton("write_annotated", "Save annotated fixation report locally as .rds (developer use only)"),
+                downloadButton("download_summary",   "Download summary report as .csv"),
+                actionButton("write_all_rds", "Write annotated fixrep and summary locally as .rds (developer use only)"),
                 actionButton("exit_app", "Exit App")
       ),
       nav_panel("To Do",
                 h3("Developer notes"),
                 p(paste0("Handle automatially running 'annotate this face' before either ", "(1) doing another face, or (2) saving the data and exiting.")),
-                p(paste0("If we just call 'annotate this face' naively, then the current face ", "would be duplicated across rows in the event that the user", "did in fact use 'annotate this face' appropriately. ", "However dplyr::distinct() might be good for this as it removes duplicate rows - ", "Need to check whether rows are unique enough for this - I think if fiaxtion id is used, then using distinct should work.")),
+                p(paste0("If we just call 'annotate this face' naively, then the current face ","would be duplicated across rows in the event that the user","did in fact use 'annotate this face' appropriately. ","However dplyr::distinct() might be good for this as it removes duplicate rows - ","Need to check whether rows are unique enough for this - I think if fiaxtion id is used, then using distinct should work.")),
                 p(paste0("FIXED: double-click doesn't do anything")),
                 p(paste0("selecting origin doesn't do anything"))
       ),
@@ -72,20 +70,15 @@ ui <- page_fillable(
       )
     ),
     navset_card_pill(
-      nav_panel("Faces upload",
-        card(fluidRow(
-                 column(6, plotOutput("face_for_edit", click = "face_for_edit_click", 
-                                      dblclick = "face_for_edit_dblclick")),
-                 column(6, plotOutput("face_for_markup"))))),
-      nav_panel("Annotated fixation report",
-                dataTableOutput('table'))
+      nav_panel("Faces edit", card(fluidRow(column(6, plotOutput("face_for_edit", click = "face_for_edit_click", dblclick = "face_for_edit_dblclick")),column(6, plotOutput("face_for_markup"))))),
+      nav_panel("Annotated fixation report", dataTableOutput('table'))
     )
     )
   )
 
 
 
-
+##### SREVER #####
 
 server <- function(input, output, session) {
   
@@ -97,8 +90,7 @@ server <- function(input, output, session) {
     fixrep = NA,
     fixrep_this_face = NA,
     fixrep_with_annotation = tibble(),
-    vor = NA,
-    dwell_time_report = NA
+    vor = NA
   )
   
   observe({
@@ -131,92 +123,61 @@ server <- function(input, output, session) {
   
   # Respond to upload fixation report button
   observeEvent(input$upload_fixrep, {
-    excel_or_csv = xfun::mime_type(input$upload_fixrep$datapath)
-    if(excel_or_csv %in% c("application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")){
-      fix_rep_in = readxl::read_excel(input$upload_fixrep$datapath)
-      }
-    if(excel_or_csv == "text/csv"){
-      fix_rep_in = read_csv(input$upload_fixrep$datapath, show_col_types = F)
-      }
-    g$fixrep_raw = fix_rep_in
+    if(tools::file_ext(input$upload_fixrep$datapath)=="xls"){
+      message("xls option")
+      g$fixrep_raw = read_delim(input$upload_fixrep$datapath, locale = readr::locale(encoding = "UTF-16LE"), show_col_types = FALSE)
+    }
+    if(tools::file_ext(input$upload_fixrep$datapath)=="csv"){
+      message("csv option")
+      g$fixrep_raw = read_csv(input$upload_fixrep$datapath, show_col_types = FALSE) 
+    }
+    if(tools::file_ext(input$upload_fixrep$datapath)=="xlsx"){
+      message("xlsx option")
+      g$fixrep_raw = read_xlsx(input$upload_fixrep$datapath) 
+    }
     output$variable_selectors <- renderUI({
-      if (!is.null(fix_rep_in)) {
+      if (!is.null(g$fixrep_raw)) {
         tagList(
-          radioButtons(inputId="origin_location", label="Fixation Report (0,0) is at:", 
-                       choices=c("top-left of screen", "centre of screen", "bottom-left of screen"),
-                       selected = character(0)),
-          selectInput("participant_id", "Select Participant ID Variable", choices = names(fix_rep_in)),
-          selectInput("trial_id", "Select Trial ID Variable", choices = names(fix_rep_in)),
-          selectInput("fix_id", "Select Fixation Index Variable", choices = names(fix_rep_in)),
-          selectInput("x_var", "Select Eye X Coordinate Variable", choices = names(fix_rep_in)),
-          selectInput("y_var", "Select Eye Y Coordinate Variable", choices = names(fix_rep_in)),
-          selectInput("face_filename", "Select Face File Name Variable", choices =  names(fix_rep_in)),
-          selectInput("fixation_duration", "Select Fixation Duration Variable", choices = names(fix_rep_in)),
-          selectInput("condition1", "Condition Variable 1", choices = c("None", names(fix_rep_in))),
-          selectInput("condition2", "Condition Variable 2", choices = c("None", names(fix_rep_in)))
+          radioButtons(inputId="origin_location", label="Fixation Report (0,0) is at:", choices=c("top-left of screen", "centre of screen", "bottom-left of screen"),selected = character(0)),
+          selectInput("participant_id", "Select Participant ID Variable", choices = names(g$fixrep_raw)),
+          selectInput("trial_id", "Select Trial ID Variable", choices = names(g$fixrep_raw)),
+          selectInput("fix_id", "Select Fixation Index Variable", choices = names(g$fixrep_raw)),
+          selectInput("x_var", "Select Eye X Coordinate Variable", choices = names(g$fixrep_raw)),
+          selectInput("y_var", "Select Eye Y Coordinate Variable", choices = names(g$fixrep_raw)),
+          selectInput("face_filename", "Select Face File Name Variable", choices =  names(g$fixrep_raw)),
+          selectInput("fixation_duration", "Select Fixation Duration Variable", choices = names(g$fixrep_raw)),
+          selectInput("condition1", "Condition Variable 1", choices = c("None", names(g$fixrep_raw))),
+          selectInput("condition2", "Condition Variable 2", choices = c("None", names(g$fixrep_raw)))
         )}})
   })
 
 
+  # Make fixrep this face after fixrep and face are uploaded
+  observe({
+    if(!is.null(input$upload_face) && !is.null(input$upload_fixrep)){
+      nrows_of_fixrep = nrow(g$fixrep_raw)
+      if(input$condition1 == "None"){condition1_var = rep(as.character(NA), times=nrows_of_fixrep)}
+      if(input$condition1 != "None"){condition1_var = g$fixrep_raw %>% pull(input$condition1)}
+      g$fixrep=tibble(
+        subject_id = g$fixrep_raw %>% pull(input$participant_id),
+        trial_id = g$fixrep_raw %>% pull(input$trial_id),
+        condition1 = condition1_var,
+        #condition2 = ifelse(input$condition2 =="None", NA, g$fixrep_raw %>% pull(input$condition2)),
+        face_jpeg = g$fixrep_raw %>% pull(input$face_filename),
+        fix_x = g$fixrep_raw %>% pull(input$x_var) - ((1920-600)/2),
+        fix_y = g$fixrep_raw %>% pull(input$y_var) - ((1080-600)/2),
+        fix_dur = g$fixrep_raw %>% pull(input$fixation_duration),
+      )
+      g$fixrep_this_face = g$fixrep %>% filter(face_jpeg == input$upload_face$name)
+    }})
 
-  # Respond to upload new face
-  observeEvent(input[['upload_face']], {
-    # Make the fixrep for the new face
-    subject_id = g$fixrep_raw %>% pull(input$participant_id)
-    trial_id = g$fixrep_raw %>% pull(input$trial_id)
-    fix_id = g$fixrep_raw %>% pull(input$fix_id)
-    fix_x = g$fixrep_raw %>% pull(input$x_var) - ((1920-600)/2)
-    fix_y = g$fixrep_raw %>% pull(input$y_var) - ((1080-600)/2)
-    face_jpeg = g$fixrep_raw %>% pull(input$face_filename)
-    fix_dur = g$fixrep_raw %>% pull(input$fixation_duration)
-    face_jpeg = g$fixrep_raw %>% pull(input$face_filename)
-    
-    
-    
-    condition1 = case_when(
-      input$condition1=="None" ~ NA,
-      .default=g$fixrep_raw %>% pull(input$condition1)
-    )
-    
-    tmp1 = tibble(subject_id, trial_id, fix_id, fix_x, fix_y, face_jpeg, fix_dur, condition1) 
-    
-    tmp_this_face = filter(face_jpeg == input$upload_face$name)
-    
-    browser()
-    # condition2 = g$fixrep_raw %>% pull(input$condition2)
-    # 
-    # g$fixrep_this_face <- 
-    #    condition1) %>% 
-    #   filter(face_jpeg == input$upload_face$name)
-    # # )
-    # 
-    # if(input$condition1 != "None"){
-    #   condition1  = g$fixrep_raw %>% pull(input$condition1)
-    # }
-    # if(input$condition2 != "None"){
-    #   condition2  = g$fixrep_raw %>% pull(input$condition2)
-    # }
-    # 
-    # g$fixrep_this_face=tibble(
-    #   
-    #   ,
-    #   ,
-    #   ,
-    #   ,
-    #   
-    #   
-    # ) %>% 
-    #browser()
-  })
-  
-  
-  
-  
+
   # Respond to clicks on the face
   observeEvent(input[['face_for_edit_click']], {
     # Make AOI name
     if(input$aoi_name == "a"){
-      aoi_name = paste0(input$aoi_name,nrow(g$aois)+1)
+      #aoi_name = paste0(input$aoi_name,nrow(g$aois)+1)
+      aoi_name = paste0(input$aoi_name, sample(LETTERS,1), sample(0:9,1))
       updateTextInput(session, "aoi_name", value="a")
     } else {
       aoi_name = input$aoi_name
@@ -228,10 +189,6 @@ server <- function(input, output, session) {
                       aoi_name=aoi_name)
     g$aois = g$aois %>% bind_rows(this_aoi)
   })
-  
-  
-  
-  
   
   # Respond to double-click in face - Remove aoi on double click
   observeEvent(input$face_for_edit_dblclick, {
@@ -263,11 +220,9 @@ server <- function(input, output, session) {
     }
   })
   
-
   
-    
-  # Respond to annotate_current_face
-  observeEvent(input[['annotate_current_face']], {
+  # Respond to annotate
+  observeEvent(input[['annotate']], {
     for(i in 1:nrow(g$fixrep_this_face)){
       x = g$fixrep_this_face[i, "fix_x"] %>% pull()
       y = g$fixrep_this_face[i, "fix_y"] %>% pull()
@@ -276,10 +231,21 @@ server <- function(input, output, session) {
       g$fixrep_this_face[i, "tile"] = tile_number
       g$fixrep_this_face[i, "tile_name"] = g$aois$aoi_name[tile_number]
     }
+    #browser()
     g$fixrep_with_annotation = g$fixrep_with_annotation %>% bind_rows(g$fixrep_this_face)
-    browser()
-    g$dwell_time_report = g$fixrep_with_annotation %>% group_by(subject_id, trial_id, condition1, condition2,face_jpeg, tile_name) %>% summarise(nfix=n(), dwell_time=sum(fix_dur), av_dwell_time=dwell_time / nfix)
     g$aois_all = g$aois_all %>% bind_rows(g$aois)
+    g$summary_file <- g$fixrep_with_annotation %>% 
+      group_by(subject_id, trial_id, condition1, face_jpeg, tile_name) %>% 
+      summarise(
+        dwell_time=sum(fix_dur),
+        n_fixations = n(), 
+        avge_dwell_time_per_fixation=dwell_time/n_fixations) %>% 
+      group_by(condition1, tile_name) %>% 
+      summarise(
+        mean_dwell_time=mean(dwell_time), 
+        mean_n_fixations=mean(n_fixations), 
+        mean_avge_dwell_time_per_fixation = mean(avge_dwell_time_per_fixation)
+      )
   })
   
   # Respond to start next face
@@ -290,29 +256,36 @@ server <- function(input, output, session) {
     reset("upload_face")
     shinyjs::runjs("document.getElementById('upload_face').click();")
   })
-
   
-  
-  
-    
   # Respond to debug
   observeEvent(input[['debug']], {
     browser()
   })
   
   # Respond to write rds
-  observeEvent(input[['write_annotated']], {
-    saveRDS(g$fixrep_with_annotation, file.path( "outputs",   paste0("fixrep_with_annotation-", Sys.time() %>% gsub(pattern=" ", replacement="_") %>% gsub(pattern=".", replacement="_", fixed=TRUE),  ".rds")  ) )
-    saveRDS(g$dwell_time_report, file.path("outputs", paste0("dwell_time_", Sys.time() %>% gsub(pattern=" ", replacement="_") %>% gsub(pattern=".", replacement="_", fixed=TRUE), ".rds")))
+  observeEvent(input[['write_all_rds']], {
+    mytimestamp = Sys.time() %>% gsub(pattern=" ", replacement="_") %>% gsub(pattern=".", replacement="_", fixed=TRUE)
+    saveRDS(g$fixrep_with_annotation, file.path("outputs", paste0(mytimestamp, "-fixrep_with_annotation",  ".rds")))
+    saveRDS(g$summary_file,           file.path("outputs", paste0(mytimestamp, "-summary-file",            ".rds")))
   })
 
-  # Respond to write csv and exit
+  # Respond to download_annotated
   output$download_annotated <- downloadHandler(
     filename = function() {
-      paste("data-", "fixrep_with_annotation-", Sys.time() %>% gsub(pattern=" ", replacement="_") %>% gsub(pattern=".", replacement="_", fixed=TRUE), ".csv", sep="")
+      paste("data-", Sys.time() %>% gsub(pattern=" ", replacement="_") %>% gsub(pattern=".", replacement="_", fixed=TRUE), "-fixrep_with_annotation", ".csv", sep="")
     },
     content = function(file) {
       write.csv(g$fixrep_with_annotation, file)
+    }
+  )
+  
+  # Respond to download_summary
+  output$download_summary <- downloadHandler(
+    filename = function() {
+      paste("data-", Sys.time() %>% gsub(pattern=" ", replacement="_") %>% gsub(pattern=".", replacement="_", fixed=TRUE), "-summary", ".csv", sep="")
+    },
+    content = function(file) {
+      write.csv(g$summary_file, file)
     }
   )
 
