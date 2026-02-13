@@ -119,6 +119,11 @@ server <- function(input, output, session) {
     }
   })
   
+  # Format timestamps nicely
+  safe_timestamp <- function() {
+    format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
+  }
+  
   ### END FUNCTIONS ###
   
   # Respond to upload fixation report button
@@ -164,8 +169,12 @@ server <- function(input, output, session) {
         condition1 = condition1_var,
         #condition2 = ifelse(input$condition2 =="None", NA, g$fixrep_raw %>% pull(input$condition2)),
         face_jpeg = g$fixrep_raw %>% pull(input$face_filename),
-        fix_x = g$fixrep_raw %>% pull(input$x_var) - ((1920-600)/2),
-        fix_y = g$fixrep_raw %>% pull(input$y_var) - ((1080-600)/2),
+        # Here, we do not change the raw values for x and y
+        fix_x = g$fixrep_raw %>% pull(input$x_var),
+        fix_y = g$fixrep_raw %>% pull(input$y_var),
+        # Here, we do change the raw values for x and y
+        # fix_x = g$fixrep_raw %>% pull(input$x_var) - ((1920-600)/2),
+        # fix_y = g$fixrep_raw %>% pull(input$y_var) - ((1080-600)/2),
         fix_dur = g$fixrep_raw %>% pull(input$fixation_duration),
       )
       g$fixrep_this_face = g$fixrep %>% filter(face_jpeg == input$upload_face$name)
@@ -264,7 +273,7 @@ server <- function(input, output, session) {
   
   # Respond to write rds
   observeEvent(input[['write_all_rds']], {
-    mytimestamp = Sys.time() %>% gsub(pattern=" ", replacement="_") %>% gsub(pattern=".", replacement="_", fixed=TRUE)
+    mytimestamp = safe_timestamp()
     saveRDS(g$fixrep_with_annotation, file.path("outputs", paste0(mytimestamp, "-fixrep_with_annotation",  ".rds")))
     saveRDS(g$summary_file,           file.path("outputs", paste0(mytimestamp, "-summary-file",            ".rds")))
   })
@@ -272,7 +281,7 @@ server <- function(input, output, session) {
   # Respond to download_annotated
   output$download_annotated <- downloadHandler(
     filename = function() {
-      paste("data-", Sys.time() %>% gsub(pattern=" ", replacement="_") %>% gsub(pattern=".", replacement="_", fixed=TRUE), "-fixrep_with_annotation", ".csv", sep="")
+      paste("data-", safe_timestamp(), "-fixrep_with_annotation", ".csv", sep="")
     },
     content = function(file) {
       write.csv(g$fixrep_with_annotation, file)
@@ -282,7 +291,7 @@ server <- function(input, output, session) {
   # Respond to download_summary
   output$download_summary <- downloadHandler(
     filename = function() {
-      paste("data-", Sys.time() %>% gsub(pattern=" ", replacement="_") %>% gsub(pattern=".", replacement="_", fixed=TRUE), "-summary", ".csv", sep="")
+      paste("data-", safe_timestamp(), "-summary", ".csv", sep="")
     },
     content = function(file) {
       write.csv(g$summary_file, file)
