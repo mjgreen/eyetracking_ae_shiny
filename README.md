@@ -2,7 +2,7 @@
 
 ## How to sync to the server (method using git)
 
-* First, login to the server: `ssh -p 22 mgreen@uruguay.bournemouth.ac.uk`
+* First, login to the server: `ssh -p 22 mgreen@paraguay.bournemouth.ac.uk`
 * `cd ShinyApps`
 * if for the first time: `git clone --depth=1 --branch=main git@github.com:mjgreen/eyetracking_ae_shiny.git`
 * `cd eyetracking_ae_shiny`
@@ -11,7 +11,7 @@
 * `renv::restore()`
    * or, if that isn't sufficient then
    * `renv::rebuild()`
-* page is avialable at: https://uruguay.bournemouth.ac.uk/shiny/users/mgreen/eyetracking_ae_shiny/
+* page is avialable at: https://paraguay.bournemouth.ac.uk/shiny/users/mgreen/eyetracking_ae_shiny/
 
 ### Methods for syncing to the server that I abandoned:
 * scp works but scp can't ignore directories (like renv/library/; .git/) - `scp -r /home/matt/gits/eyetracking_uruguay mgreen@uruguay.bournemouth.ac.uk:/home/mgreen/ShinyApps/`
