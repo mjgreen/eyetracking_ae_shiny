@@ -6,14 +6,14 @@ ui <- page_fillable(
       nav_panel("Instructions",
                 h3("Developer Notes"),
                 tags$div(
-                         HTML("
-                          <ul>
-                          <li>This is v 0.1 with tabbed interface</li>
-                          <li> I live at <a href='https://uruguay.bournemouth.ac.uk/shiny/users/mgreen/eyetracking_ae_shiny/' > https://uruguay.bournemouth.ac.uk/shiny/users/mgreen/eyetracking_ae_shiny/  </a> </li>
-                          <li> My github is <a href='https://github.com/mjgreen/eyetracking_ae_shiny' > https://github.com/mjgreen/eyetracking_ae_shiny </a> </li>
-                          <li> Use the Debug tab to inspect the internal state of the program but only when running from RStudio, not on the server</li>
-                          </ul>
-                          ")),
+                  HTML("
+                    <ul>
+                    <li>This is v 0.1 with tabbed interface</li>
+                    <li> I live at <a href='https://uruguay.bournemouth.ac.uk/shiny/users/mgreen/eyetracking_ae_shiny/' > https://uruguay.bournemouth.ac.uk/shiny/users/mgreen/eyetracking_ae_shiny/  </a> </li>
+                    <li> My github is <a href='https://github.com/mjgreen/eyetracking_ae_shiny' > https://github.com/mjgreen/eyetracking_ae_shiny </a> </li>
+                    <li> Use the Debug tab to inspect the internal state of the program but only when running from RStudio, not on the server</li>
+                    </ul>
+                    ")),
                 hr(),
                 h3("User Instructions"),
                 tags$div(
@@ -58,8 +58,22 @@ ui <- page_fillable(
       )
     ),
     navset_card_pill(
-      nav_panel("Faces edit", card(fluidRow(column(6, plotOutput("face_for_edit", click = "face_for_edit_click", dblclick = "face_for_edit_dblclick")),column(6, plotOutput("face_for_markup"))))),
-      nav_panel("Annotated fixation report", dataTableOutput('table'))
-    )
+      nav_panel("Faces edit", 
+                card(
+                  fluidRow(
+                    column(6, 
+                           plotOutput("face_for_edit", 
+                                      click = "face_for_edit_click", 
+                                      dblclick = "face_for_edit_dblclick")),
+                    column(6, 
+                           plotOutput("face_for_markup"
+                                      ))
+                    )
+                  )
+                ),
+      nav_panel("Annotated fixation report", 
+                dataTableOutput('table')
+                )
     )
   )
+)

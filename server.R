@@ -1,5 +1,7 @@
 server <- function(input, output, session) {
   
+  # REACTIVE VARIABLES
+  
   # Globally accessible variables
   g = reactiveValues(
     aois_all = tibble(),
@@ -15,7 +17,7 @@ server <- function(input, output, session) {
     reactiveValuesToList(g)
   })
   
-  ### FUNCTIONS ###
+  # REACTIVE FUNCTIONS
 
   # Read face jpeg function
   myjpeg = reactive({
