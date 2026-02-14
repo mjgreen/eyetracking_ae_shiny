@@ -1,0 +1,6 @@
+{
+  "r.rterm.linux": "/usr/bin/R",
+  "terminal.integrated.env.linux": {
+    "LINTR_CONFIG": "/home/matt/gits/eyetracking_ae_shiny/.lintr"
+  }
+}
