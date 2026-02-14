@@ -39,11 +39,6 @@ server <- function(input, output, session) {
     }
   })
   
-  # Format timestamps nicely
-  safe_timestamp <- function() {
-    format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
-  }
-  
   ### END FUNCTIONS ###
   
   # Respond to upload fixation report button
