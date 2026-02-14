@@ -1,5 +1,10 @@
 # Alex's Shiny App for Eye-tracking data analysis
 
+## TODO
+
+* summary download only works for the most recent face in the event that multiple faces are annotated
+* UI is horribly crowded and needs to be redesigned
+
 ## How to sync to the server (method using git)
 
 * First, login to the server: `ssh -p 22 mgreen@paraguay.bournemouth.ac.uk`
